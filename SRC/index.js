@@ -2,6 +2,8 @@ const express = require('express');
 const app = express();
 const pool = require('./database');
 
+app.use(express.json());
+
 const PORT = process.env.PORT || 3000
 
 //isso é uma rota /helloworld
@@ -11,10 +13,36 @@ app.get('/helloworld', async (request, response) => {
 
 });
 
-app.get('/cliente', async (request, response) => {
+app.post('/addCliente', async (request, response) => {
 
     try {
         
+        const {nome, cpf, idade, id_tipo_cliente} = request.body
+
+        console.log (nome)
+        console.log (cpf)
+        console.log (idade)
+        console.log (id_tipo_cliente)
+
+        const result = await pool.query('INSERT INTO cliente (nome, cpf, idade, id_tipo_cliente) values ($1, $2, $3, $4)', 
+                                                            [nome, cpf, idade, id_tipo_cliente]);
+
+        response.send('Cliente cadastrado com sucesso!'); 
+
+    }catch(err){
+
+        console.log(err)
+
+        response.status(500).send(err)
+    }
+
+});
+
+
+app.get('/listCliente', async (request, response) => {
+
+    try {
+
         const result = await pool.query('SELECT * FROM cliente');
 
         response.send(result.rows); 
@@ -25,19 +53,6 @@ app.get('/cliente', async (request, response) => {
 
 });
 
-app.get('/endereco', async (request, response) => {
-
-    try {
-        
-        const result = await pool.query('SELECT * FROM endereco');
-
-        response.send(result.rows); 
-
-    }catch(err){
-        response.status(500).send(err)
-    }
-
-});
 
 
 app.listen(PORT, ()=>{
@@ -46,12 +61,6 @@ app.listen(PORT, ()=>{
 
 });
 
-app.get('/detalhecliente', async (request,response)=>{
-
-    const result = await pool.query('SELECT * FROM cliente cl join endereco dc on (id_cliente = id_tipo_cliente)');
-
-    response.send(result.rows);
-})
 
 //http://localhost:3000/helloworld
 
